@@ -79,22 +79,180 @@
                 document.getElementById('botStatus').className = 'status-idle';
             });
         });
-        //Filter 
-        function myFunction() {
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("myInput");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("myTable");
-  tr = table.getElementsByTagName("tr");
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[0];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
-      }
-    }       
-  }
+
+
+// Function to load trade data from API
+let currentPage = 1;
+const tradesPerPage = 10;
+let allTrades = [];
+
+// Function to load trade data from API
+async function loadTradeData() {
+    try {
+        console.log('Loading trade data...');
+        const response = await fetch('/api/trades');
+        
+        if (!response.ok) {
+            throw new Error('API response not OK');
+        }
+        
+        allTrades = await response.json();
+        console.log('Trades loaded:', allTrades);
+        
+        // Display first page
+        displayTrades(allTrades);
+        
+    } catch (error) {
+        console.error('Error loading trades:', error);
+        displayError('Failed to load trade data: ' + error.message);
+    }
 }
+
+// Function to display trades in table with pagination
+function displayTrades(trades) {
+    const tbody = document.getElementById('trades-table-body');
+    
+    if (!tbody) {
+        console.error('Table body element not found');
+        return;
+    }
+    
+    if (trades.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-muted">
+                    No trades found in database
+                </td>
+            </tr>
+        `;
+        updatePagination(0);
+        return;
+    }
+    
+    // Calculate pagination
+    const totalPages = Math.ceil(trades.length / tradesPerPage);
+    const startIndex = (currentPage - 1) * tradesPerPage;
+    const endIndex = startIndex + tradesPerPage;
+    const pageTrades = trades.slice(startIndex, endIndex);
+    
+    // Display current page trades
+    tbody.innerHTML = pageTrades.map(trade => `
+        <tr>
+            <td>${formatDate(trade.date_of_transaction)}</td>
+            <td><span class="badge ${trade.type === 'SELL' ? 'bg-danger' : 'bg-success'}">${trade.type || 'BUY'}</span></td>
+            <td>${trade.symbol || 'N/A'}/USD</td>
+            <td>${trade.amount || '0'}</td>
+            <td>$${formatPrice(trade.price_of_token)}</td>
+            <td>—</td>
+            <td><span class="badge bg-success">Completed</span></td>
+        </tr>
+    `).join('');
+    
+    // Update pagination controls
+    updatePagination(trades.length);
+}
+
+// Function to update pagination controls
+function updatePagination(totalTrades) {
+    const totalPages = Math.ceil(totalTrades / tradesPerPage);
+    const paginationElement = document.getElementById('pagination');
+    
+    if (!paginationElement) {
+        console.log('Pagination element not found');
+        return;
+    }
+    
+    if (totalPages <= 1) {
+        paginationElement.innerHTML = '';
+        return;
+    }
+    
+    let paginationHTML = `
+        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>
+        </li>
+    `;
+    
+    // Show page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        paginationHTML += `
+            <li class="page-item ${currentPage === i ? 'active' : ''}">
+                <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+            </li>
+        `;
+    }
+    
+    paginationHTML += `
+        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>
+        </li>
+    `;
+    
+    paginationElement.innerHTML = paginationHTML;
+}
+
+// Function to change page
+function changePage(page) {
+    const totalPages = Math.ceil(allTrades.length / tradesPerPage);
+    
+    if (page < 1 || page > totalPages) return;
+    
+    currentPage = page;
+    displayTrades(allTrades);
+}
+
+// Function to format price with 2 decimal places
+function formatPrice(price) {
+    if (!price) return '0.00';
+    return parseFloat(price).toFixed(2);
+}
+
+// Function to format date
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleString();
+    } catch {
+        return dateString;
+    }
+}
+
+// Function to display errors
+function displayError(message) {
+    const tbody = document.getElementById('trades-table-body');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-danger">
+                    ${message}
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Your existing filter function
+function myFunction() {
+    var input, filter, table, tr, td, i, txtValue;
+    input = document.getElementById("myInput");
+    filter = input.value.toUpperCase();
+    table = document.getElementById("myTable");
+    tr = table.getElementsByTagName("tr");
+    for (i = 0; i < tr.length; i++) {
+        td = tr[i].getElementsByTagName("td")[0];
+        if (td) {
+            txtValue = td.textContent || td.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }       
+    }
+}
+
+// Load trade data when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    loadTradeData();
+});
