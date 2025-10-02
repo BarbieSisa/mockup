@@ -233,23 +233,54 @@ function displayError(message) {
 }
 
 // Your existing filter function
-function myFunction() {
-    var input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("myInput");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("myTable");
-    tr = table.getElementsByTagName("tr");
-    for (i = 0; i < tr.length; i++) {
-        td = tr[i].getElementsByTagName("td")[0];
-        if (td) {
-            txtValue = td.textContent || td.innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
+// Enhanced filter function for multiple criteria
+function filterTable() {
+    const dateFilter = document.getElementById('dateFilter').value.toUpperCase();
+    const actionFilter = document.getElementById('actionFilter').value.toUpperCase();
+    const cryptoFilter = document.getElementById('cryptoFilter').value.toUpperCase();
+    
+    const table = document.getElementById('myTable');
+    const tr = table.getElementsByTagName('tr');
+    
+    // Start from index 1 to skip header row
+    for (let i = 1; i < tr.length; i++) {
+        const td = tr[i].getElementsByTagName('td');
+        let showRow = true;
+        
+        // Check date filter (column 0)
+        if (dateFilter && td[0]) {
+            const dateValue = td[0].textContent || td[0].innerText;
+            if (dateValue.toUpperCase().indexOf(dateFilter) === -1) {
+                showRow = false;
             }
-        }       
+        }
+        
+        // Check action filter (column 1)
+        if (actionFilter && td[1] && showRow) {
+            const actionValue = td[1].textContent || td[1].innerText;
+            if (actionValue.toUpperCase().indexOf(actionFilter) === -1) {
+                showRow = false;
+            }
+        }
+        
+        // Check cryptocurrency filter (column 2)
+        if (cryptoFilter && td[2] && showRow) {
+            const cryptoValue = td[2].textContent || td[2].innerText;
+            if (cryptoValue.toUpperCase().indexOf(cryptoFilter) === -1) {
+                showRow = false;
+            }
+        }
+        
+        tr[i].style.display = showRow ? "" : "none";
     }
+}
+
+// Function to clear all filters
+function clearFilters() {
+    document.getElementById('dateFilter').value = '';
+    document.getElementById('actionFilter').value = '';
+    document.getElementById('cryptoFilter').value = '';
+    filterTable();
 }
 
 // Load trade data when page loads

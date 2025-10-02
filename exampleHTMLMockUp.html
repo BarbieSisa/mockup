@@ -160,11 +160,31 @@
             <!-- Charts and Data -->
             <div class="row g-4 flex-grow-1">
                 <!-- Price Chart -->
-<div class="mb-3">
-    <input type="text" id="myInput" onkeyup="myFunction()" 
-           placeholder="Search for names.." 
-           class="form-control"
-           title="Type in a name">
+<!-- Filter Controls -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label for="dateFilter" class="form-label">Date Period</label>
+        <input type="text" class="form-control" id="dateFilter" placeholder="Filter by date..." onkeyup="filterTable()">
+    </div>
+    <div class="col-md-3">
+        <label for="actionFilter" class="form-label">Action Type</label>
+        <select class="form-select" id="actionFilter" onchange="filterTable()">
+            <option value="">All Actions</option>
+            <option value="BUY">BUY</option>
+            <option value="SELL">SELL</option>
+            <option value="HOLD">HOLD</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label for="cryptoFilter" class="form-label">Cryptocurrency</label>
+        <input type="text" class="form-control" id="cryptoFilter" placeholder="Filter by crypto..." onkeyup="filterTable()">
+    </div>
+    <div class="col-md-3">
+        <label class="form-label">&nbsp;</label>
+        <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+            Clear Filters
+        </button>
+    </div>
 </div>
     <div class="container-fluid">
     <div class="card">
